@@ -1,19 +1,45 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Pipeline Azure DevOps - Exemple structuré
+# Documentation : https://aka.ms/yaml
 
 trigger:
-- master
+  branches:
+    include:
+      - main     # Change ici en 'master' si ta branche s'appelle master
 
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  buildConfiguration: 'Release'
+
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+# 1️⃣ Vérifier le code (checkout)
+- checkout: self
+  displayName: "Récupération du code source"
+
+# 2️⃣ Installer dépendances (exemple Node.js)
+- task: NodeTool@0
+  inputs:
+    versionSpec: '18.x'
+  displayName: "Installer Node.js"
 
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    npm install
+  displayName: "Installer les dépendances"
+
+# 3️⃣ Build
+- script: |
+    npm run build
+  displayName: "Construire l'application"
+
+# 4️⃣ Tests
+- script: |
+    npm test
+  displayName: "Exécuter les tests"
+
+# 5️⃣ Publier les artefacts
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.SourcesDirectory)/dist'
+    ArtifactName: 'drop'
+  displayName: "Publier les artefacts de build"
